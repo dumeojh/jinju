@@ -25,6 +25,10 @@
         .section { margin-bottom: 35px; border-bottom: 1px solid #eee; padding-bottom: 25px; }
         .section-title { font-size: 1.25em; font-weight: bold; color: var(--accent); margin-bottom: 15px; border-left: 5px solid var(--accent); padding-left: 12px; }
         
+        /* 입력창 스타일 */
+        .input-group { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .input-label-text { font-weight: bold; min-width: 80px; color: #2c3e50; }
+        
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; transition: border 0.3s; }
         input:focus, textarea:focus { border-color: var(--accent); outline: none; }
         textarea { height: 120px; resize: none; margin-top: 8px; line-height: 1.5; }
@@ -92,7 +96,10 @@
     <div id="mainContent">
         <div class="section">
             <div class="section-title">2. 기사 제목 및 참고자료</div>
-            <input type="text" id="articleTitle" placeholder="탐구 내용을 대표하는 기사 제목을 창의적으로 작성하세요" style="margin-bottom:12px; font-weight:bold;">
+            <div class="input-group">
+                <span class="input-label-text">기사 제목 :</span>
+                <input type="text" id="articleTitle" placeholder="탐구 내용을 대표하는 창의적인 제목을 작성하세요" style="font-weight:bold;">
+            </div>
             <div class="guide-box">수집한 데이터의 출처나 근거 자료를 입력하세요 (최대 3개)</div>
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
                 <input type="text" class="ref" placeholder="참고자료 1 (URL 등)">
@@ -142,7 +149,7 @@
 </div>
 
 <script>
-    // ⚠️ [중요] 구글 앱스 스크립트 배포 후 받은 URL을 여기에 넣으세요!
+    // ⚠️ [필수 수정] 구글 앱스 스크립트 배포 후 받은 URL을 여기에 넣으세요!
     const GOOGLE_SCRIPT_URL = "여기에_스크립트_URL을_넣으세요";
 
     const grid = document.getElementById('dataInputGrid');
@@ -179,15 +186,13 @@
                 points.push([parseFloat(xs[i].value), parseFloat(ys[i].value)]);
             }
         }
-
         if(points.length < 7) { alert("최소 7개 이상의 데이터를 입력해야 분석이 가능합니다."); return; }
         points.sort((a,b) => a[0] - b[0]);
 
         let result;
-        // 한글 이름에 따라 분석 로직 할당
         if(area === '지수함수') result = regression.exponential(points);
         else if(area === '로그함수') result = regression.logarithmic(points);
-        else result = regression.polynomial(points, {order:2}); // 삼각함수는 이차곡선으로 근사
+        else result = regression.polynomial(points, {order:2});
 
         document.getElementById('analysisArea').style.display = 'block';
         document.getElementById('outFormula').innerText = `[산출된 함수식] ${result.string}`;
@@ -197,9 +202,7 @@
 
         const minX = Math.min(...points.map(p=>p[0])), maxX = Math.max(...points.map(p=>p[0]));
         let trend = [];
-        for(let x=minX; x<=maxX; x+=(maxX-minX)/50) {
-            trend.push({x:x, y:result.predict(x)[1]});
-        }
+        for(let x=minX; x<=maxX; x+=(maxX-minX)/50) trend.push({x:x, y:result.predict(x)[1]});
 
         chartInstance = new Chart(ctx, {
             data: {
@@ -208,9 +211,8 @@
                     { type:'line', label:'추세선', data:trend, borderColor:'#e74c3c', borderWidth:3, fill:false, pointRadius:0 }
                 ]
             },
-            options: { responsive: true, scales: { x:{type:'linear', position:'bottom', title:{display:true, text:'X축'}}, y:{title:{display:true, text:'Y축'}} } }
+            options: { responsive: true, scales: { x:{type:'linear', position:'bottom'}, y:{type:'linear'} } }
         });
-        
         setTimeout(() => { window.scrollTo({top: document.getElementById('analysisArea').offsetTop, behavior: 'smooth'}); }, 100);
     }
 
@@ -243,8 +245,7 @@
             btn.innerText = "✅ 제출 완료 (저장됨)";
             btn.style.background = "#2ecc71";
         } catch (e) {
-            console.error(e);
-            alert("네트워크 오류로 저장이 실패했습니다. 화면을 캡처해 두거나 PDF로 먼저 저장하세요.");
+            alert("네트워크 오류가 발생했습니다. 화면 캡처 후 선생님께 문의하세요.");
             btn.disabled = false;
             btn.innerText = "다시 제출 시도";
         }
