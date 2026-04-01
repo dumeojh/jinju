@@ -80,9 +80,9 @@
                 <label>분석할 함수 영역 선택</label>
                 <select id="funcArea">
                     <option value="">-- 영역 선택 --</option>
-                    <option value="exponential">지수함수 영역</option>
-                    <option value="logarithmic">로그함수 영역</option>
-                    <option value="polynomial">삼각함수/다항함수 영역</option>
+                    <option value="지수함수">지수함수 영역</option>
+                    <option value="로그함수">로그함수 영역</option>
+                    <option value="삼각함수">삼각함수 영역 (이차근사)</option>
                 </select>
             </div>
             <button class="btn btn-start" onclick="startExam()">확인 (시험 시작하기)</button>
@@ -142,16 +142,14 @@
 </div>
 
 <script>
-    // ⚠️ [필수 수정] 구글 앱스 스크립트 배포 후 받은 URL을 여기에 넣으세요!
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiRUBCWcmUYpHagj2erFNKTwVLTJxImlKS3izITk6Efamif9VbpFp6xP23vsE5xOZt/exec";
+    // ⚠️ [중요] 구글 앱스 스크립트 배포 후 받은 URL을 여기에 넣으세요!
+    const GOOGLE_SCRIPT_URL = "여기에_스크립트_URL을_넣으세요";
 
-    // 데이터 입력창 10개 생성
     const grid = document.getElementById('dataInputGrid');
     for(let i=1; i<=10; i++) {
         grid.innerHTML += `<div class="data-item">#${i} x:<input type="number" class="ix" step="any"> y:<input type="number" class="iy" step="any"></div>`;
     }
 
-    // 시험 시작 인증
     function startExam() {
         const cls = document.getElementById('gradeClass').value;
         const num = document.getElementById('stuNum').value;
@@ -171,23 +169,25 @@
 
     let chartInstance = null;
 
-    // 분석 및 그래프 생성
     function runAnalysis() {
         const area = document.getElementById('funcArea').value;
         let points = [];
         const xs = document.querySelectorAll('.ix'), ys = document.querySelectorAll('.iy');
+        
         for(let i=0; i<10; i++) {
             if(xs[i].value !== "" && ys[i].value !== "") {
                 points.push([parseFloat(xs[i].value), parseFloat(ys[i].value)]);
             }
         }
+
         if(points.length < 7) { alert("최소 7개 이상의 데이터를 입력해야 분석이 가능합니다."); return; }
         points.sort((a,b) => a[0] - b[0]);
 
         let result;
-        if(area === 'exponential') result = regression.exponential(points);
-        else if(area === 'logarithmic') result = regression.logarithmic(points);
-        else result = regression.polynomial(points, {order:2});
+        // 한글 이름에 따라 분석 로직 할당
+        if(area === '지수함수') result = regression.exponential(points);
+        else if(area === '로그함수') result = regression.logarithmic(points);
+        else result = regression.polynomial(points, {order:2}); // 삼각함수는 이차곡선으로 근사
 
         document.getElementById('analysisArea').style.display = 'block';
         document.getElementById('outFormula').innerText = `[산출된 함수식] ${result.string}`;
@@ -197,7 +197,9 @@
 
         const minX = Math.min(...points.map(p=>p[0])), maxX = Math.max(...points.map(p=>p[0]));
         let trend = [];
-        for(let x=minX; x<=maxX; x+=(maxX-minX)/50) trend.push({x:x, y:result.predict(x)[1]});
+        for(let x=minX; x<=maxX; x+=(maxX-minX)/50) {
+            trend.push({x:x, y:result.predict(x)[1]});
+        }
 
         chartInstance = new Chart(ctx, {
             data: {
@@ -206,12 +208,12 @@
                     { type:'line', label:'추세선', data:trend, borderColor:'#e74c3c', borderWidth:3, fill:false, pointRadius:0 }
                 ]
             },
-            options: { responsive: true, scales: { x:{type:'linear', position:'bottom'}, y:{type:'linear'} } }
+            options: { responsive: true, scales: { x:{type:'linear', position:'bottom', title:{display:true, text:'X축'}}, y:{title:{display:true, text:'Y축'}} } }
         });
+        
         setTimeout(() => { window.scrollTo({top: document.getElementById('analysisArea').offsetTop, behavior: 'smooth'}); }, 100);
     }
 
-    // 구글 시트 저장 기능
     async function saveToSheets() {
         const btn = document.getElementById('saveBtn');
         if(!confirm("최종 제출하시겠습니까? 제출 후에는 구글 시트에 기록되어 수정할 수 없습니다.")) return;
@@ -241,7 +243,8 @@
             btn.innerText = "✅ 제출 완료 (저장됨)";
             btn.style.background = "#2ecc71";
         } catch (e) {
-            alert("네트워크 오류가 발생했습니다. 화면 캡처 후 선생님께 문의하세요.");
+            console.error(e);
+            alert("네트워크 오류로 저장이 실패했습니다. 화면을 캡처해 두거나 PDF로 먼저 저장하세요.");
             btn.disabled = false;
             btn.innerText = "다시 제출 시도";
         }
