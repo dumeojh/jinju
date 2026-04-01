@@ -86,7 +86,7 @@
         </div>
 
         <div class="section">
-            <div class="section-title">4. 실생활 데이터 입력 (7~10개)</div>
+            <div class="section-title">4. 실생활 데이터 입력</div>
             <div class="data-grid" id="dataInputGrid"></div>
             <button class="btn btn-calc no-print" onclick="runAnalysis()">확인 (그래프 및 식 생성)</button>
         </div>
@@ -135,7 +135,9 @@
         let pts = [];
         const xs = document.querySelectorAll('.ix'), ys = document.querySelectorAll('.iy');
         for(let i=0; i<10; i++) if(xs[i].value && ys[i].value) pts.push([parseFloat(xs[i].value), parseFloat(ys[i].value)]);
-        if(pts.length < 7) { alert("데이터를 7개 이상 입력하세요."); return; }
+        
+        // 제한 개수를 7개에서 3개로 낮춤 (최소한의 수학적 계산을 위한 기준)
+        if(pts.length < 3) { alert("데이터를 3개 이상 입력하세요."); return; }
         pts.sort((a,b) => a[0] - b[0]);
 
         let res;
