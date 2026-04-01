@@ -33,11 +33,15 @@
         input:focus, textarea:focus { border-color: var(--accent); outline: none; }
         textarea { height: 120px; resize: none; margin-top: 8px; line-height: 1.5; }
 
-        .guide-box { background: #e8f4fd; padding: 12px; border-radius: 6px; font-size: 0.95em; color: #34495e; margin-bottom: 10px; border-left: 4px solid #3498db; }
+        /* 가이드 박스 */
+        .guide-box { background: #e8f4fd; padding: 15px; border-radius: 8px; font-size: 0.95em; color: #34495e; margin-bottom: 15px; border-left: 4px solid #3498db; }
+        .example-tag { display: inline-block; background: #fff; padding: 2px 8px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 5px; font-weight: bold; color: #e67e22; }
 
-        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 10px; }
-        .data-item { font-size: 0.95em; display: flex; align-items: center; gap: 8px; font-weight: bold; }
-        .data-item input { width: 65px; padding: 8px; text-align: center; }
+        /* 데이터 그리드 */
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 10px; }
+        .data-item { font-size: 0.9em; display: flex; align-items: center; gap: 5px; font-weight: bold; }
+        .data-item input { width: 70px; padding: 8px; text-align: center; font-size: 14px; }
+        .data-item input::placeholder { color: #bbb; font-weight: normal; font-size: 12px; }
 
         .btn { cursor: pointer; border: none; border-radius: 8px; font-weight: bold; transition: 0.3s; color: white; display: flex; align-items: center; justify-content: center; }
         .btn-start { background: var(--accent); padding: 18px; font-size: 1.2em; width: 100%; }
@@ -119,8 +123,15 @@
 
         <div class="section">
             <div class="section-title">4. 실생활 데이터 입력 (7~10개)</div>
-            <div class="guide-box">측정하거나 수집한 (x, y) 데이터를 최소 7개 이상 입력하세요.</div>
-            <div class="data-grid" id="dataInputGrid"></div>
+            <div class="guide-box" style="background: #fffbe6; border-left-color: #faad14;">
+                <span class="example-tag">데이터 입력 가이드</span><br>
+                <b>x(원인)</b> : 가로축 값 / <b>y(결과)</b> : 세로축 값<br>
+                - 지수함수 예시 : x(시간), y(개체 수 또는 금액)<br>
+                - 로그함수 예시 : x(자극의 세기), y(등급 또는 감각 세기)<br>
+                - 삼각함수 예시 : x(시각), y(해수면 높이 또는 기온)
+            </div>
+            <div class="data-grid" id="dataInputGrid">
+                </div>
             <button class="btn btn-calc no-print" onclick="runAnalysis()">확인 (그래프 및 식 생성)</button>
         </div>
 
@@ -152,9 +163,15 @@
     // ⚠️ [필수 수정] 구글 앱스 스크립트 배포 후 받은 URL을 여기에 넣으세요!
     const GOOGLE_SCRIPT_URL = "여기에_스크립트_URL을_넣으세요";
 
+    // 데이터 입력창 10개 생성 (x, y 가이드 포함)
     const grid = document.getElementById('dataInputGrid');
     for(let i=1; i<=10; i++) {
-        grid.innerHTML += `<div class="data-item">#${i} x:<input type="number" class="ix" step="any"> y:<input type="number" class="iy" step="any"></div>`;
+        grid.innerHTML += `
+            <div class="data-item">
+                #${i} 
+                <input type="number" class="ix" step="any" placeholder="x (독립변수)"> 
+                <input type="number" class="iy" step="any" placeholder="y (종속변수)">
+            </div>`;
     }
 
     function startExam() {
@@ -186,7 +203,7 @@
                 points.push([parseFloat(xs[i].value), parseFloat(ys[i].value)]);
             }
         }
-        if(points.length < 7) { alert("최소 7개 이상의 데이터를 입력해야 분석이 가능합니다."); return; }
+        if(points.length < 7) { alert("최소 7개 이상의 세트(x, y) 데이터를 입력해야 분석이 가능합니다."); return; }
         points.sort((a,b) => a[0] - b[0]);
 
         let result;
