@@ -2,142 +2,187 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>수행평가: 함수 추세선 분석 프로그램</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수행평가 | 함수 기사문 작성 프로그램</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
     <style>
-        body { font-family: 'Pretendard', sans-serif; padding: 20px; background-color: #f5f7fa; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #333; }
-        .input-section { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        .data-row { border: 1px solid #ddd; padding: 10px; border-radius: 8px; }
-        input { width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
-        .controls { text-align: center; margin: 20px 0; border-top: 1px solid #eee; padding-top: 20px; }
-        select, button { padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px; border: 1px solid #3498db; }
-        button { background-color: #3498db; color: white; transition: 0.3s; }
-        button:hover { background-color: #2980b9; }
-        #resultFormula { font-size: 1.2em; font-weight: bold; color: #e74c3c; text-align: center; margin-top: 10px; min-height: 1.5em; }
-        canvas { margin-top: 20px; }
+        :root { --primary: #4a90e2; --bg: #f0f2f5; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); padding: 10px; line-height: 1.6; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        
+        /* 섹션 스타일 */
+        .section { margin-bottom: 30px; padding: 15px; border: 1px solid #eee; border-radius: 8px; }
+        .section-title { font-weight: bold; font-size: 1.2em; margin-bottom: 15px; color: var(--primary); display: flex; align-items: center; }
+        
+        /* 입력창 스타일 */
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        textarea { height: 150px; resize: none; }
+        
+        /* 데이터 테이블 */
+        .data-table { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .data-row { background: #f9f9f9; padding: 8px; border-radius: 5px; border: 1px solid #ddd; width: 160px; }
+        
+        .btn-submit { display: block; width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1.1em; cursor: pointer; margin-top: 20px; }
+        .btn-submit:hover { background: #357abd; }
+        
+        #resultArea { margin-top: 30px; display: none; border-top: 3px double #333; padding-top: 20px; }
+        @media print { .no-print { display: none; } .container { box-shadow: none; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📈 실생활 데이터 함수 분석</h1>
-    
-    <p style="text-align: center; color: #666;">(x, y) 데이터를 7~10개 입력하고 추세선 종류를 선택하세요.</p>
+    <h1>📝 함수 기사문 작성 수행평가</h1>
 
-    <div class="input-section" id="inputs">
+    <div class="no-print">
+        <div class="section">
+            <div class="section-title">1. 학생 정보 및 영역 선택</div>
+            <div class="grid-inputs">
+                <input type="text" id="studentId" placeholder="학번 (예: 20101)">
+                <input type="text" id="studentName" placeholder="이름">
+                <select id="funcType">
+                    <option value="">분석 영역 선택</option>
+                    <option value="exponential">지수함수 영역</option>
+                    <option value="logarithmic">로그함수 영역</option>
+                    <option value="polynomial">삼각함수 영역 (이차 근사)</option>
+                </select>
+            </div>
         </div>
 
-    <div class="controls">
-        <select id="typeSelect">
-            <option value="linear">일차함수 (Linear)</option>
-            <option value="exponential">지수함수 (Exponential)</option>
-            <option value="logarithmic">로그함수 (Logarithmic)</option>
-            <option value="polynomial">이차함수 (Quadratic)</option>
-        </select>
-        <button onclick="calculate()">분석 및 그래프 그리기</button>
+        <div class="section">
+            <div class="section-title">2. 실생활 데이터 입력 (7~10개)</div>
+            <div class="data-table" id="dataInputs"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">3. 기사 내용 작성</div>
+            <input type="text" id="articleTitle" placeholder="기사 제목을 입력하세요" style="margin-bottom:10px; font-size:1.1em; font-weight:bold;">
+            <div class="grid-inputs" style="margin-bottom:10px;">
+                <input type="text" class="ref-link" placeholder="참고자료 1 (URL 또는 문헌명)">
+                <input type="text" class="ref-link" placeholder="참고자료 2">
+                <input type="text" class="ref-link" placeholder="참고자료 3">
+            </div>
+            <textarea id="articleContent" placeholder="함수의 특성을 포함하여 기사 본문을 작성하세요..."></textarea>
+        </div>
+
+        <button class="btn-submit" onclick="generateArticle()">분석 및 기사 발행하기</button>
     </div>
 
-    <div id="resultFormula"></div>
-    <canvas id="myChart"></canvas>
+    <div id="resultArea">
+        <h2 id="outTitle" style="text-align:center; font-size:1.8em;"></h2>
+        <p style="text-align:right;" id="outInfo"></p>
+        <hr>
+        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+            <div style="flex: 1; min-width: 300px;">
+                <canvas id="outChart"></canvas>
+                <p id="outFormula" style="text-align:center; font-weight:bold; color:red; margin-top:10px;"></p>
+            </div>
+            <div style="flex: 1; min-width: 300px; white-space: pre-wrap; font-size: 1.1em;" id="outContent"></div>
+        </div>
+        <div id="outRefs" style="margin-top:20px; font-size:0.9em; color:#666;"></div>
+        <button class="btn-submit no-print" style="background:#27ae60;" onclick="window.print()">PDF로 저장 / 인쇄하기</button>
+    </div>
 </div>
 
 <script>
-    // 1. 입력 칸 10개 자동 생성
-    const inputContainer = document.getElementById('inputs');
+    // 입력창 10개 생성
+    const dataInputs = document.getElementById('dataInputs');
     for (let i = 1; i <= 10; i++) {
-        inputContainer.innerHTML += `
+        dataInputs.innerHTML += `
             <div class="data-row">
-                <b>${i}</b> | 
-                x: <input type="number" class="x-val" step="any"> 
-                y: <input type="number" class="y-val" step="any">
+                <b>#${i}</b> x: <input type="number" class="x-val" style="width:45px"> y: <input type="number" class="y-val" style="width:45px">
             </div>
         `;
     }
 
-    let myChart = null;
+    let chartInstance = null;
 
-    function calculate() {
-        const xInputs = document.querySelectorAll('.x-val');
-        const yInputs = document.querySelectorAll('.y-val');
-        const type = document.getElementById('typeSelect').value;
-        
-        let rawData = [];
-        for (let i = 0; i < 10; i++) {
-            if (xInputs[i].value !== "" && yInputs[i].value !== "") {
-                rawData.push([parseFloat(xInputs[i].value), parseFloat(yInputs[i].value)]);
-            }
-        }
+    function generateArticle() {
+        const id = document.getElementById('studentId').value;
+        const name = document.getElementById('studentName').value;
+        const type = document.getElementById('funcType').value;
+        const title = document.getElementById('articleTitle').value;
+        const content = document.getElementById('articleContent').value;
 
-        if (rawData.length < 7) {
-            alert("최소 7개의 데이터를 입력해야 합니다!");
+        if(!id || !name || !type || !title) {
+            alert("모든 기본 정보와 제목을 입력해주세요!");
             return;
         }
 
-        // 데이터 정렬 (x축 기준)
-        rawData.sort((a, b) => a[0] - b[0]);
-
-        // 2. 추세선 계산 (regression-js 사용)
-        let result;
-        if (type === 'linear') result = regression.linear(rawData);
-        else if (type === 'exponential') result = regression.exponential(rawData);
-        else if (type === 'logarithmic') result = regression.logarithmic(rawData);
-        else if (type === 'polynomial') result = regression.polynomial(rawData, { order: 2 });
-
-        // 결과식 표시
-        document.getElementById('resultFormula').innerText = `도출된 식: ${result.string}`;
-
-        // 3. 그래프 데이터 준비
-        const minX = Math.min(...rawData.map(d => d[0]));
-        const maxX = Math.max(...rawData.map(d => d[0]));
-        const step = (maxX - minX) / 50;
-        
-        let trendLine = [];
-        for (let x = minX; x <= maxX; x += step) {
-            trendLine.push({ x: x, y: result.predict(x)[1] });
+        // 데이터 수집
+        let rawData = [];
+        const xs = document.querySelectorAll('.x-val');
+        const ys = document.querySelectorAll('.y-val');
+        for(let i=0; i<10; i++) {
+            if(xs[i].value !== "" && ys[i].value !== "") {
+                rawData.push([parseFloat(xs[i].value), parseFloat(ys[i].value)]);
+            }
         }
 
-        updateChart(rawData, trendLine, type);
+        if(rawData.length < 7) {
+            alert("데이터를 최소 7개 이상 입력해야 분석이 가능합니다.");
+            return;
+        }
+
+        rawData.sort((a,b) => a[0] - b[0]);
+
+        // 추세선 계산
+        let result;
+        if (type === 'exponential') result = regression.exponential(rawData);
+        else if (type === 'logarithmic') result = regression.logarithmic(rawData);
+        else result = regression.polynomial(rawData, { order: 2 });
+
+        // 결과 화면 표시
+        document.getElementById('resultArea').style.display = 'block';
+        document.getElementById('outTitle').innerText = title;
+        document.getElementById('outInfo').innerText = `작성자: ${id} ${name} | 영역: ${type}`;
+        document.getElementById('outContent').innerText = content;
+        document.getElementById('outFormula').innerText = `분석된 함수식: ${result.string}`;
+
+        // 참고자료 정리
+        const refs = document.querySelectorAll('.ref-link');
+        let refHtml = "<b>참고자료:</b><br>";
+        refs.forEach(r => { if(r.value) refHtml += `- ${r.value}<br>`; });
+        document.getElementById('outRefs').innerHTML = refHtml;
+
+        // 그래프 그리기
+        drawChart(rawData, result);
+        
+        window.scrollTo(0, document.getElementById('resultArea').offsetTop);
     }
 
-    function updateChart(rawData, trendLine, type) {
-        const ctx = document.getElementById('myChart').getContext('2d');
-        
-        if (myChart) myChart.destroy();
+    function drawChart(rawData, result) {
+        const ctx = document.getElementById('outChart').getContext('2d');
+        if (chartInstance) chartInstance.destroy();
 
-        myChart = new Chart(ctx, {
+        const minX = Math.min(...rawData.map(d => d[0]));
+        const maxX = Math.max(...rawData.map(d => d[0]));
+        let trend = [];
+        for (let x = minX; x <= maxX; x += (maxX-minX)/50) {
+            trend.push({ x: x, y: result.predict(x)[1] });
+        }
+
+        chartInstance = new Chart(ctx, {
             data: {
-                datasets: [
-                    {
-                        type: 'scatter',
-                        label: '수집 데이터',
-                        data: rawData.map(d => ({ x: d[0], y: d[1] })),
-                        backgroundColor: '#3498db',
-                        pointRadius: 6
-                    },
-                    {
-                        type: 'line',
-                        label: `추세선 (${type})`,
-                        data: trendLine,
-                        borderColor: '#e74c3c',
-                        borderWidth: 2,
-                        fill: false,
-                        pointRadius: 0
-                    }
-                ]
+                datasets: [{
+                    type: 'scatter',
+                    label: '실제 데이터',
+                    data: rawData.map(d => ({x: d[0], y: d[1]})),
+                    backgroundColor: 'blue'
+                }, {
+                    type: 'line',
+                    label: '함수 추세선',
+                    data: trend,
+                    borderColor: 'red',
+                    pointRadius: 0
+                }]
             },
-            options: {
-                responsive: true,
-                scales: {
-                    x: { type: 'linear', position: 'bottom', title: { display: true, text: 'X 축' } },
-                    y: { title: { display: true, text: 'Y 축' } }
-                }
-            }
+            options: { responsive: true }
         });
     }
 </script>
-
 </body>
 </html>
