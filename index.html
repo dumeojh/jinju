@@ -147,7 +147,17 @@
         else latexFormula = `\\( y = ${a}x^2 + ${res.equation[1].toFixed(4)}x + ${res.equation[2].toFixed(4)} \\)`;
 
         const formulaDiv = document.getElementById('outFormula');
-        formulaDiv.innerHTML = `<b>산출된 함수식</b><br>${latexFormula}`;
+        
+        // --- 요청하신 문구 추가 (이 부분만 수정되었습니다) ---
+        formulaDiv.innerHTML = `
+            <b>산출된 함수식</b><br>
+            <div style="font-size: 0.55em; color: #555; font-weight: normal; margin: 8px 0;">
+                (작성한 자료를 기반으로 산출된 산점도와 추세선 그래프와 식을 해석하고 이를 선정한 주제와 연관지어 실세계 현상을 해석하시오.)
+            </div>
+            ${latexFormula}
+        `;
+        // ----------------------------------------------------
+
         MathJax.typesetPromise([formulaDiv]);
 
         document.getElementById('analysisArea').style.display = 'block';
