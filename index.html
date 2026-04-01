@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>안성여고 수학 수행평가 프로그램</title>
+    <title>안성여고 수학 수행평가 시스템</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
     <style>
@@ -12,54 +12,56 @@
         .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         
         /* 상단 고정 정보 */
-        .user-sticky { background: #eef2f7; padding: 10px 20px; border-radius: 8px; margin-bottom: 20px; display: none; font-weight: bold; border-left: 5px solid var(--accent); }
+        .user-sticky { background: #eef2f7; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; display: none; font-weight: bold; border-left: 5px solid var(--accent); font-size: 1.1em; }
         
         /* 인증 섹션 */
-        #authSection { text-align: center; padding: 50px 20px; }
-        .auth-box { display: inline-block; text-align: left; background: #fff; padding: 30px; border: 1px solid #ddd; border-radius: 10px; }
-        .auth-row { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        #authSection { text-align: center; padding: 40px 10px; }
+        .auth-box { display: inline-block; text-align: left; background: #fff; padding: 30px; border: 2px solid var(--accent); border-radius: 15px; width: 100%; max-width: 400px; }
+        .auth-row { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary); }
 
-        /* 메인 콘텐츠 섹션 */
+        /* 메인 콘텐츠 */
         #mainContent { display: none; }
-        .section { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
-        .section-title { font-size: 1.2em; font-weight: bold; color: var(--accent); margin-bottom: 15px; }
+        .section { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 25px; }
+        .section-title { font-size: 1.25em; font-weight: bold; color: var(--accent); margin-bottom: 15px; border-left: 5px solid var(--accent); padding-left: 12px; }
         
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        textarea { height: 100px; resize: none; margin-top: 5px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        textarea { height: 110px; resize: none; margin-top: 8px; }
 
-        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px; }
-        .data-item { background: #fdfdfd; border: 1px solid #eee; padding: 8px; border-radius: 5px; font-size: 0.9em; }
-        .data-item input { width: 55px; padding: 5px; display: inline-block; }
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 10px; }
+        .data-item { font-size: 0.95em; display: flex; align-items: center; gap: 8px; }
+        .data-item input { width: 65px; padding: 8px; text-align: center; }
 
-        .btn { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.3s; }
-        .btn-start { background: var(--accent); color: white; padding: 15px 40px; font-size: 1.1em; width: 100%; }
-        .btn-calc { background: #2ecc71; color: white; padding: 12px; width: 100%; font-size: 1.1em; }
-        .btn-print { background: #e67e22; color: white; padding: 15px; width: 100%; margin-top: 20px; }
+        .btn { cursor: pointer; border: none; border-radius: 8px; font-weight: bold; transition: 0.3s; color: white; }
+        .btn-start { background: var(--accent); padding: 18px; font-size: 1.2em; width: 100%; }
+        .btn-calc { background: #27ae60; padding: 15px; width: 100%; font-size: 1.1em; margin-bottom: 10px; }
+        .btn-save { background: #2980b9; padding: 18px; flex: 1; font-size: 1.1em; }
+        .btn-print { background: #7f8c8d; padding: 18px; flex: 1; font-size: 1.1em; }
+        .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
 
-        #analysisArea { display: none; margin-top: 20px; background: #fffaf0; padding: 20px; border-radius: 10px; border: 1px solid #ffeaa7; }
+        #analysisArea { display: none; margin-top: 30px; background: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 10px; }
         
-        @media print { .no-print { display: none; } #mainContent, #analysisArea { display: block !important; } .container { box-shadow: none; width: 100%; } }
+        @media print { .no-print { display: none; } #mainContent, #analysisArea { display: block !important; } .container { box-shadow: none; width: 100%; border: none; } }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="stickyHeader" class="user-sticky">
-        [수행평가 진행 중] <span id="displayInfo"></span>
+        📍 [수행평가 진행 중] <span id="displayInfo"></span>
     </div>
 
     <div id="authSection" class="no-print">
-        <h1>📝 함수 기사문 작성 수행평가</h1>
+        <h1 style="color: var(--primary);">📈 실생활 데이터 함수 분석</h1>
+        <p>반, 번호, 이름 및 분석 영역을 선택해 주세요.</p>
         <div class="auth-box">
             <div class="auth-row">
                 <label>반 선택</label>
                 <select id="gradeClass">
                     <option value="">-- 반 선택 --</option>
-                    <option value="2-1">2학년 1반</option>
-                    <option value="2-2">2학년 2반</option>
-                    <option value="2-3">2학년 3반</option>
-                    <option value="2-4">2학년 4반</option>
+                    <option value="2-1">2학년 1반</option><option value="2-2">2학년 2반</option>
+                    <option value="2-3">2학년 3반</option><option value="2-4">2학년 4반</option>
+                    <option value="2-5">2학년 5반</option><option value="2-6">2학년 6반</option>
                 </select>
             </div>
             <div class="auth-row">
@@ -70,12 +72,12 @@
                 </div>
             </div>
             <div class="auth-row">
-                <label>분석 함수 영역</label>
+                <label>분석 영역 선택</label>
                 <select id="funcArea">
                     <option value="">-- 영역 선택 --</option>
-                    <option value="exponential">지수함수</option>
-                    <option value="logarithmic">로그함수</option>
-                    <option value="polynomial">삼각함수(이차근사)</option>
+                    <option value="exponential">지수함수 영역</option>
+                    <option value="logarithmic">로그함수 영역</option>
+                    <option value="polynomial">삼각함수/다항함수 영역</option>
                 </select>
             </div>
             <button class="btn btn-start" onclick="startExam()">확인 (시험 시작)</button>
@@ -85,64 +87,63 @@
     <div id="mainContent">
         <div class="section">
             <div class="section-title">2. 기사 제목 및 주제 선정 이유</div>
-            <input type="text" id="articleTitle" placeholder="기사 제목을 입력하세요" style="margin-bottom:10px;">
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-bottom:10px;">
+            <input type="text" id="articleTitle" placeholder="기사 제목을 입력하세요" style="margin-bottom:10px; font-weight:bold;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
                 <input type="text" class="ref" placeholder="참고자료 1">
                 <input type="text" class="ref" placeholder="참고자료 2">
                 <input type="text" class="ref" placeholder="참고자료 3">
             </div>
-            <textarea id="reason" placeholder="주제를 선정한 이유와 실생활 배경을 설명하세요."></textarea>
+            <textarea id="reason" placeholder="해당 주제를 선정한 배경과 이유를 설명하세요."></textarea>
         </div>
 
         <div class="section">
             <div class="section-title">4. 실생활 데이터 입력 (7~10개)</div>
             <div class="data-grid" id="dataInputGrid"></div>
-            <button class="btn btn-calc no-print" onclick="runAnalysis()">데이터 분석 및 그래프 생성</button>
+            <button class="btn btn-calc no-print" onclick="runAnalysis()">확인 (그래프 및 식 생성)</button>
         </div>
 
         <div id="analysisArea">
             <div class="section-title">5. 산점도와 추세선 관찰 및 데이터 해석</div>
-            <canvas id="mainChart" style="background:#fff; margin-bottom:15px; border-radius:5px;"></canvas>
-            <div id="outFormula" style="text-align:center; font-weight:bold; color:#d63031; margin-bottom:20px;"></div>
+            <canvas id="mainChart" style="max-height: 400px; margin-bottom:20px;"></canvas>
+            <div id="outFormula" style="text-align:center; font-size:1.3em; font-weight:bold; color:#e74c3c; padding:15px; background:#fef4f4; border-radius:8px; margin-bottom:25px;"></div>
 
             <div class="observation-box">
                 <label><b>(1) 그래프의 수학적 특징</b></label>
-                <textarea id="obs1" placeholder="추세선의 증가/감소 형태, 점들의 밀집도, 함수식의 상수값 의미 등을 작성하세요."></textarea>
+                <textarea id="obs1" placeholder="추세선의 모양, 증가/감소율, 데이터의 경향성 등을 분석하여 적으세요."></textarea>
                 
-                <label style="margin-top:15px;"><b>(2) 실세계 현상 해석</b></label>
-                <textarea id="obs2" placeholder="도출된 그래프와 식이 실제 수집한 주제(현상)를 어떻게 설명하고 있는지 해석하세요."></textarea>
+                <label style="margin-top:20px;"><b>(2) 실세계 현상 해석</b></label>
+                <textarea id="obs2" placeholder="작성한 그래프와 식을 기반으로 실세계 현상을 해석하시오."></textarea>
                 
-                <label style="margin-top:15px;"><b>(3) 수학의 유용성 및 가치 성찰</b></label>
-                <textarea id="obs3" placeholder="이번 탐구를 통해 느낀 수학적 모델링의 가치와 유용성을 성찰하여 작성하세요."></textarea>
+                <label style="margin-top:20px;"><b>(3) 수학적 유용성 및 가치 성찰</b></label>
+                <textarea id="obs3" placeholder="탐구를 통해 느낀 수학의 유용성 및 가치를 성찰하여 작성하세요."></textarea>
             </div>
             
-            <button class="btn btn-print no-print" onclick="window.print()">최종 결과물 PDF 저장 / 인쇄</button>
+            <div class="no-print" style="display: flex; gap: 15px; margin-top: 40px;">
+                <button id="saveBtn" class="btn btn-save" onclick="saveToSheets()">구글 시트에 저장 및 제출</button>
+                <button class="btn btn-print" onclick="window.print()">PDF 결과물 저장</button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // 데이터 입력칸 초기화 (10개)
+    // ⚠️ 구글 앱스 스크립트 웹 앱 URL을 여기에 붙여넣으세요!
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiRUBCWcmUYpHagj2erFNKTwVLTJxImlKS3izITk6Efamif9VbpFp6xP23vsE5xOZt/exec";
+
     const grid = document.getElementById('dataInputGrid');
     for(let i=1; i<=10; i++) {
         grid.innerHTML += `<div class="data-item">#${i} x:<input type="number" class="ix"> y:<input type="number" class="iy"></div>`;
     }
 
-    // 시험 시작 함수
     function startExam() {
         const cls = document.getElementById('gradeClass').value;
         const num = document.getElementById('stuNum').value;
         const name = document.getElementById('stuName').value;
         const area = document.getElementById('funcArea').value;
 
-        if(!cls || !num || !name || !area) {
-            alert("모든 정보와 분석 영역을 선택해야 시험을 시작할 수 있습니다.");
-            return;
-        }
+        if(!cls || !num || !name || !area) { alert("모든 항목을 입력/선택해야 합니다."); return; }
 
         alert(`${cls} ${num}번 ${name} 학생, 시험을 시작합니다.`);
-        
-        // 화면 전환
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('mainContent').style.display = 'block';
         document.getElementById('stickyHeader').style.display = 'block';
@@ -151,52 +152,76 @@
 
     let chartInstance = null;
 
-    // 분석 실행 함수
     function runAnalysis() {
         const area = document.getElementById('funcArea').value;
         let points = [];
         const xs = document.querySelectorAll('.ix'), ys = document.querySelectorAll('.iy');
-        
         for(let i=0; i<10; i++) {
             if(xs[i].value && ys[i].value) points.push([parseFloat(xs[i].value), parseFloat(ys[i].value)]);
         }
 
-        if(points.length < 7) {
-            alert("정확한 분석을 위해 최소 7개의 데이터를 입력해 주세요.");
-            return;
-        }
-
+        if(points.length < 7) { alert("데이터를 7개 이상 입력해 주세요."); return; }
         points.sort((a,b) => a[0] - b[0]);
 
-        // 회귀 계산
         let result;
         if(area === 'exponential') result = regression.exponential(points);
         else if(area === 'logarithmic') result = regression.logarithmic(points);
         else result = regression.polynomial(points, {order:2});
 
-        // 그래프 영역 노출
         document.getElementById('analysisArea').style.display = 'block';
-        document.getElementById('outFormula').innerText = `[산출된 함수식] ${result.string}`;
+        document.getElementById('outFormula').innerText = `산출된 함수식: ${result.string}`;
 
-        // 그래프 그리기
         const ctx = document.getElementById('mainChart').getContext('2d');
         if(chartInstance) chartInstance.destroy();
 
         const minX = Math.min(...points.map(p=>p[0])), maxX = Math.max(...points.map(p=>p[0]));
-        let trendLine = [];
-        for(let x=minX; x<=maxX; x+=(maxX-minX)/50) trendLine.push({x:x, y:result.predict(x)[1]});
+        let trend = [];
+        for(let x=minX; x<=maxX; x+=(maxX-minX)/50) trend.push({x:x, y:result.predict(x)[1]});
 
         chartInstance = new Chart(ctx, {
             data: {
                 datasets: [
-                    { type:'scatter', label:'수집 데이터', data:points.map(p=>({x:p[0], y:p[1]})), backgroundColor:'#3498db' },
-                    { type:'line', label:'추세선', data:trendLine, borderColor:'#e74c3c', fill:false, pointRadius:0 }
+                    { type:'scatter', label:'데이터 점', data:points.map(p=>({x:p[0], y:p[1]})), backgroundColor:'#3498db', pointRadius:6 },
+                    { type:'line', label:'추세선', data:trend, borderColor:'#e74c3c', borderWidth:3, fill:false, pointRadius:0 }
                 ]
             },
-            options: { scales: { x:{type:'linear', position:'bottom'} } }
+            options: { responsive: true, scales: { x:{type:'linear', position:'bottom'} } }
         });
-
         window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    async function saveToSheets() {
+        const btn = document.getElementById('saveBtn');
+        if(!confirm("정말로 제출하시겠습니까? 제출 후에는 수정이 어렵습니다.")) return;
+        
+        btn.disabled = true;
+        btn.innerText = "제출 중...";
+
+        const payload = {
+            gradeClass: document.getElementById('gradeClass').value,
+            stuNum: document.getElementById('stuNum').value,
+            stuName: document.getElementById('stuName').value,
+            funcArea: document.getElementById('funcArea').value,
+            articleTitle: document.getElementById('articleTitle').value,
+            formula: document.getElementById('outFormula').innerText,
+            obs1: document.getElementById('obs1').value,
+            obs2: document.getElementById('obs2').value,
+            obs3: document.getElementById('obs3').value
+        };
+
+        try {
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // CORS 정책 우회
+                body: JSON.stringify(payload)
+            });
+            alert("제출이 완료되었습니다! 수고하셨습니다.");
+            btn.innerText = "제출 완료";
+        } catch (e) {
+            alert("저장 오류가 발생했습니다. 화면을 캡처한 후 선생님께 문의하세요.");
+            btn.disabled = false;
+            btn.innerText = "다시 제출 시도";
+        }
     }
 </script>
 </body>
